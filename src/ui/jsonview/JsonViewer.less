@@ -1,0 +1,99 @@
+
+.jsonViewer {
+    font-family: Menlo, Consolas, monospace;
+    font-size: 11px;
+
+    > table {
+        width: 100%;
+    }
+
+}
+
+.jsonViewerNode {
+    cursor: default;
+    &:hover {
+        background-color: #f0f9fe;
+    }
+    
+    td {
+        line-height: 16px;
+        overflow: hidden;
+        vertical-align: top;
+
+        &.jsonViewerNode-label {
+            color: #0074e8;
+            white-space: nowrap;
+        }
+
+    }
+    
+    .jsonViewerNode-labelText {
+        &::after {
+            content: ":";
+        }
+    }
+
+    .jsonViewerNode-icon {
+        box-sizing: content-box;
+        height: 14px;
+        width: 14px;
+        padding: 1px;
+        font-size: 10px;
+        line-height: 14px;
+        display: inline-block;
+        vertical-align: bottom;
+        margin-inline: 3px 1px;
+
+        &.arrow {
+            cursor: pointer;
+            background: url(../../../images/arrow.svg) center center no-repeat;
+            background-size: 10px;
+            transform: rotate(-90deg);
+            fill: rgba(135, 135, 137, 0.9);
+            color: #878789;
+
+            &.opend {
+                transform: rotate(0deg);
+            }
+        }
+    }
+
+    .jsonViewerNode-valueBox {
+        &.valueBox-null, &.valueBox-undefined {
+            color: #737373;
+        }
+        &.valueBox-number, &.valueBox-boolean {
+            color: #058b00;
+        }
+        &.valueBox-array{
+            color: #737373;
+            &::before {
+                content: "[";
+            }
+            &::after {
+                content: "]";
+            }
+            &::after, &::before {
+                color: #0074e8;
+            }
+        }
+        &.valueBox-object{
+            color: #737373;
+            &::before {
+                content: "{";
+            }
+            &::after {
+                content: "}";
+            }
+            &::after, &::before {
+                color: #0074e8;
+            }
+        }
+        &.valueBox-string{
+            color: #dd00a9;
+            &::before, &::after {
+                content: "\"";
+            }
+        }
+    }
+}
