@@ -2,7 +2,7 @@
 type PrimitiveValues = boolean | null | undefined | number | bigint | string;
 
 interface Data {
-    [key: string]: PrimitiveValues | PrimitiveValues[] | Data
+    [key: string]: any // PrimitiveValues | PrimitiveValues[] | Data | Data[]
 }
 
 interface DataCorePersistentSegmentConfig {
@@ -63,8 +63,8 @@ export class DataCore {
 }
 
 
-export class DataCoreSegment {
-    private readonly data: Data = {}
+export class DataCoreSegment<T extends Data = Data> {
+    private readonly data: T = { } as any;
     private readonly config: DataCoreSegmentConfig;
 
     public get dataType() {
@@ -75,11 +75,11 @@ export class DataCoreSegment {
         this.config = Object.assign({}, config);
     }
 
-    get(key: string) {
+    get<K extends keyof T>(key: K): T[K] {
         return this.data[key];
     }
     
-    set(key: string, value: Data) {
+    set<K extends keyof T>(key: K, value: T[K]) {
         this.data[key] = value;
     }
 

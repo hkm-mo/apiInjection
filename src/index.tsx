@@ -1,7 +1,9 @@
 
-import React from "react";
+import React, { useState } from "react";
 import ReactDOM from "react-dom/client";
 import { JsonViewer } from "./ui/jsonview/JsonViewer";
+import { Logger, LogViewer } from "./ui/LogViewer";
+import { getLocalId } from "./ui/uiUtilities";
 
 
 const testData = {
@@ -24,8 +26,47 @@ const testData = {
     }
 }
 
+function LogItem(props: {content: string}) {
+    return (
+        <p>{props.content}</p>
+    )
+}
+
+function App() {
+    const [data, setData] = useState<any>(testData);
+
+    const logger = new Logger<any>();
+    for (let i = 0; i < 1000; i++) {
+        logger.log({id: getLocalId().toString(), content: "Test " + getLocalId().toString(), type: "info"});
+    }
+
+    function addNode() {
+        setData({
+            ...data,
+            ["node"+getLocalId()]: testData
+        });
+    }
+    return (
+        <div>
+            <button type="button" onClick={addNode}>Add Node</button>
+            <JsonViewer data={data} />
+            <div id="logView" style={{height: "200px", width: "400px"}}>
+                <LogViewer logger={logger}></LogViewer>
+            </div>
+        </div>
+    )
+}
+
 const rootElm = document.getElementById("app");
 if (rootElm) {
     const root = ReactDOM.createRoot(rootElm);
-    root.render(<JsonViewer data={testData} />);
+    root.render(<App />);
 }
+
+document.getElementById("setButton")?.addEventListener("click", function() {
+    const logView = document.getElementById("logView");
+    if (logView) {
+        logView.style.width = (200+ Math.round(Math.random() * 200)) + "px";
+        //logView.style.height = (200+ Math.round(Math.random() * 200)) + "px";
+    }
+}, false);
