@@ -9,8 +9,26 @@ interface LogInfo<T> {
     content: T,
 }
 
+class LogSummary<T> {
+    private _logs: LogInfo<T>[];
+    private _updateTime: number;
+
+    get logs() {
+        return this._logs;
+    }
+
+    get updateTime() {
+        return this._updateTime;
+    }
+    
+    constructor(logs: LogInfo<T>[]) {
+        this._logs = logs;
+        this._updateTime = new Date().getTime();
+    }
+}
+
 export class Logger<T> {
-    private logs: LogInfo<T>[] = [];
+    private summary: LogSummary<T> = new LogSummary([]);
     private maxSize: number = 0;
 
     public onUpdate: (() => void) | null = null;
@@ -19,22 +37,27 @@ export class Logger<T> {
         this.maxSize = maxSize ?? 0;
     }
 
-    public getLogs() {
-        return this.logs;
+    public getSummary() {
+        return this.summary;
     }
 
     public log(data: LogInfo<T>) {
-        if (this.maxSize && this.maxSize < this.log.length) {
-            this.logs.shift();
-        }
-        this.logs.push(data);
+        const logs = this.summary.logs;
 
-        if (this.onUpdate)
+        if (this.maxSize && this.maxSize < this.log.length) {
+            logs.shift();
+        }
+
+        logs.push(data);
+        this.summary = new LogSummary(logs);
+
+        if (this.onUpdate) {
             setTimeout(this.onUpdate, 0);
+        }
     }
 
     public clearLog() {
-        this.logs = [];
+        this.summary = new LogSummary([]);
     }
 }
 
@@ -43,7 +66,7 @@ interface LogViewProps<T> {
 }
 export function LogViewer<T>(props: LogViewProps<T>) {
     const itemHeight = 20;
-    const logs = props.logger.getLogs();
+    const [logSummary, setLogSummary] = useState(props.logger.getSummary());
     const [rect, setRect] = useState<DOMRect | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -51,6 +74,10 @@ export function LogViewer<T>(props: LogViewProps<T>) {
     const [isBottom, setIsBottom] = useState<boolean>(true);
 
     let list: JSX.Element | null = null;
+
+    props.logger.onUpdate = () => {
+        setLogSummary(props.logger.getSummary());
+    };
 
     useEffect(() => {
         const resizeObserver = new ResizeObserver((entries) => {
@@ -97,7 +124,7 @@ export function LogViewer<T>(props: LogViewProps<T>) {
         list = (
             <FixedSizeList
                 className="logView-list" outerRef={scrollRef}
-                height={rect.height} width={rect.width} itemSize={itemHeight} itemCount={logs.length} itemData={logs}
+                height={rect.height} width={rect.width} itemSize={itemHeight} itemCount={logSummary.logs.length} itemData={logSummary.logs}
                 onScroll={scrollHandler}>
                 {Row}
             </FixedSizeList>

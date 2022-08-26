@@ -36,9 +36,18 @@ function App() {
     const [data, setData] = useState<any>(testData);
 
     const logger = new Logger<any>();
-    for (let i = 0; i < 1000; i++) {
-        logger.log({id: getLocalId().toString(), content: "Test " + getLocalId().toString(), type: "info"});
+    for (let i = 0; i < 100000; i++) {
+        const id = getLocalId().toString();
+        logger.log({id: id, content: "Test " + id, type: "info"});
     }
+
+    function keepUpdatingLog() {
+        const id = getLocalId().toString();
+        logger.log({id: id, content: "Test " + id, type: "info"});
+        setTimeout(keepUpdatingLog, 500 + Math.round(Math.random()* 1000))
+    }
+
+    setTimeout(keepUpdatingLog, 5000);
 
     function addNode() {
         setData({
