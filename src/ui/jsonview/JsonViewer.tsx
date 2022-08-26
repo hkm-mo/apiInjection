@@ -66,7 +66,6 @@ interface JsonViewerNodeView {
 
 function JsonViewerNodeView(props: JsonViewerNodeView) {
     const [isOpened, setIsOpened] = useState(Boolean(props.jsonViewState[props.viewId]));
-    console.log(props.viewId, props.jsonViewState[props.viewId]);
 
     const paddingInlineStart = props.level * 16;
     let arrowClass = "";
