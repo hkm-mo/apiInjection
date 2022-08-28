@@ -1,0 +1,1 @@
+This component is created base on [react-split-pane](https://github.com/tomkp/react-split-pane)

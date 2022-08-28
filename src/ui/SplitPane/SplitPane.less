@@ -1,0 +1,61 @@
+@resizer-half-size: 3px;
+@resize-color: #cacdce;
+
+.splitPane-resizer {
+    background: #cacdce;
+    z-index: 9999;
+    box-sizing: border-box;
+    position: relative;
+
+    &::before,
+    &::after {
+        content: " ";
+        display: block;
+        position: absolute;
+        background-color: transparent;
+        width: 100%;
+        height: 100%;
+        z-index: 9999;
+        top: 0;
+        left: 0;
+    }
+
+    &:hover {
+        -webkit-transition: all 2s ease;
+        transition: all 2s ease;
+    }
+
+    &.horizontal {
+        height: 1px;
+        cursor: ns-resize;
+        
+        &::before {
+            top: @resizer-half-size*-1;
+            height: @resizer-half-size;
+        }
+
+        &::after {
+            bottom: @resizer-half-size*-1;
+            height: @resizer-half-size;
+        }
+    }
+
+    &.vertical {
+        width: 1px;
+        cursor: ew-resize;
+
+        &::before {
+            left: @resizer-half-size*-1;
+            width: @resizer-half-size;
+        }
+
+        &::after {
+            right: @resizer-half-size*-1;
+            width: @resizer-half-size;
+        }
+    }
+
+    &.disabled {
+        cursor: not-allowed;
+    }
+}

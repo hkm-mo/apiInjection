@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import ReactDOM from "react-dom/client";
 import { JsonViewer } from "./ui/jsonview/JsonViewer";
 import { Logger, LogViewer } from "./ui/LogViewer";
+import Pane from "./ui/SplitPane/Pane";
+import SplitPane from "./ui/SplitPane/SplitPane";
 import { getLocalId } from "./ui/uiUtilities";
 
 
@@ -26,7 +28,7 @@ const testData = {
     }
 }
 
-function LogItem(props: {content: string}) {
+function LogItem(props: { content: string }) {
     return (
         <p>{props.content}</p>
     )
@@ -38,13 +40,13 @@ function App() {
     const logger = new Logger<any>();
     for (let i = 0; i < 100000; i++) {
         const id = getLocalId().toString();
-        logger.log({id: id, content: "Test " + id, type: "info"});
+        logger.log({ id: id, content: "Test " + id, type: "info" });
     }
 
     function keepUpdatingLog() {
         const id = getLocalId().toString();
-        logger.log({id: id, content: "Test " + id, type: "info"});
-        setTimeout(keepUpdatingLog, 500 + Math.round(Math.random()* 1000))
+        logger.log({ id: id, content: "Test " + id, type: "info" });
+        setTimeout(keepUpdatingLog, 500 + Math.round(Math.random() * 1000))
     }
 
     setTimeout(keepUpdatingLog, 5000);
@@ -52,18 +54,19 @@ function App() {
     function addNode() {
         setData({
             ...data,
-            ["node"+getLocalId()]: testData
+            ["node" + getLocalId()]: testData
         });
     }
     return (
-        <div>
-            <button type="button" onClick={addNode}>Add Node</button>
-            <JsonViewer data={data} />
-            <div id="logView" style={{height: "200px", width: "400px"}}>
+        <SplitPane split="vertical" minSize={200} maxSize={400} defaultSize={200}>
+            <div id="logView" style={{ height: "100%", width: "100%" }}>
                 <LogViewer logger={logger}></LogViewer>
             </div>
-        </div>
-    )
+            <div>
+                <JsonViewer data={data} />
+            </div>
+        </SplitPane>
+    );
 }
 
 const rootElm = document.getElementById("app");
@@ -72,10 +75,10 @@ if (rootElm) {
     root.render(<App />);
 }
 
-document.getElementById("setButton")?.addEventListener("click", function() {
+document.getElementById("setButton")?.addEventListener("click", function () {
     const logView = document.getElementById("logView");
     if (logView) {
-        logView.style.width = (200+ Math.round(Math.random() * 200)) + "px";
+        logView.style.width = (200 + Math.round(Math.random() * 200)) + "px";
         //logView.style.height = (200+ Math.round(Math.random() * 200)) + "px";
     }
 }, false);
