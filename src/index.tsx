@@ -6,6 +6,7 @@ import { BridgeLogStreamViewer } from "./ui/BridgeLogStreamViewer";
 import SplitPane from "./ui/SplitPane/SplitPane";
 import { getLocalId } from "./ui/uiUtilities";
 import { BridgeLogger, BridgeLogInfo } from "./BridgeLogger";
+import { BridgeLogViewer } from "./ui/BridgeLogViewer";
 
 
 const testData = {
@@ -37,7 +38,7 @@ function LogItem(props: { content: string }) {
 function App() {
     const [data, setData] = useState<any>(testData);
 
-    const logger = new BridgeLogger<any>();
+    const logger = new BridgeLogger();
     // for (let i = 0; i < 100000; i++) {
     //     const id = getLocalId().toString();
     //     logger.log({ id: id, request: "Test " + id, type: "info" });
@@ -45,16 +46,22 @@ function App() {
 
     function keepUpdatingLog() {
         const id = getLocalId().toString();
-        const data: BridgeLogInfo<any> = { id: id, request: "Test " + id, type: "info" }
+        const data: BridgeLogInfo = { id: id, request: {
+            action: "rpc",
+            clientId: id,
+            payload: {}
+        }, type: null };
+
         logger.log(data);
         setTimeout(() => {
             data.response = {
-                isSuccess: true,
-                data: {
-                    test: 1
+                clientId: id,
+                payload: {
+                    test: 112 + Math.random()
                 }
             };
-        }, 5000);
+        }, 1000);
+
         setTimeout(keepUpdatingLog, 500 + Math.round(Math.random() * 1000))
     }
 
@@ -67,14 +74,7 @@ function App() {
         });
     }
     return (
-        <SplitPane split="vertical" minSize={200} maxSize={400} defaultSize={200}>
-            <div id="logView" style={{ height: "100%", width: "100%" }}>
-                <BridgeLogStreamViewer logger={logger}></BridgeLogStreamViewer>
-            </div>
-            <div>
-                <JsonViewer data={data} />
-            </div>
-        </SplitPane>
+        <BridgeLogViewer logger={logger} />
     );
 }
 

@@ -1,13 +1,25 @@
 
-export interface BridgeLogInfo<T> {
-    id: string,
-    type: "info" | "error",
-    request: T,
-    response?: any,
+export interface BridgeRequest {
+    clientId: string,
+    action: string,
+    payload: any
 }
 
-class BridgeLogSummary<T> {
-    private _logs: BridgeLogInfo<T>[];
+export interface BridgeResponse {
+    clientId: string,
+    payload?: any,
+    error?: string[]
+}
+
+export interface BridgeLogInfo {
+    id: string,
+    type: "info" | "error" | null,
+    request: BridgeRequest,
+    response?: BridgeResponse,
+}
+
+export class BridgeLogSummary {
+    private _logs: BridgeLogInfo[];
     private _updateTime: number;
 
     get logs() {
@@ -18,15 +30,15 @@ class BridgeLogSummary<T> {
         return this._updateTime;
     }
 
-    constructor(logs: BridgeLogInfo<T>[]) {
+    constructor(logs: BridgeLogInfo[]) {
         this._logs = logs;
         this._updateTime = new Date().getTime();
     }
 }
 
-export class BridgeLogger<T> {
-    private incompleteData: BridgeLogInfo<T>[] = [];
-    private summary: BridgeLogSummary<T> = new BridgeLogSummary([]);
+export class BridgeLogger {
+    private incompleteData: BridgeLogInfo[] = [];
+    private summary: BridgeLogSummary = new BridgeLogSummary([]);
     private maxSize: number = 0;
 
     public onUpdate: (() => void) | null = null;
@@ -39,7 +51,7 @@ export class BridgeLogger<T> {
         return this.summary;
     }
 
-    public log(data: BridgeLogInfo<T>) {
+    public log(data: BridgeLogInfo) {
         const logs = this.summary.logs;
 
         if (this.maxSize && this.maxSize < this.log.length) {
@@ -59,7 +71,7 @@ export class BridgeLogger<T> {
 
     }
 
-    public update(data: BridgeLogInfo<T>) {
+    public update(data: BridgeLogInfo) {
         if (!data || !data.response)
             return;
 
@@ -80,5 +92,9 @@ export class BridgeLogger<T> {
 
     public clearLog() {
         this.summary = new BridgeLogSummary([]);
+
+        if (this.onUpdate) {
+            setTimeout(this.onUpdate, 0);
+        }
     }
 }

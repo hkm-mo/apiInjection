@@ -1,29 +1,24 @@
 import React, { useEffect, useRef, useState } from "react";
 import { FixedSizeList, ListChildComponentProps, ListOnScrollProps } from "react-window";
-import { BridgeLogger, BridgeLogInfo } from "../BridgeLogger";
+import { BridgeLogger, BridgeLogInfo, BridgeLogSummary } from "../BridgeLogger";
 
 import "./BridgeLogStreamViewer.less";
 
 
-interface BridgeLogStreamViewerProps<T> {
-    logger: BridgeLogger<string>,
+interface BridgeLogStreamViewerProps {
+    log: BridgeLogSummary,
+    selectedIndex?: number,
     onSelectedIndexChanged?: (index: number) => void
 }
 
-export function BridgeLogStreamViewer<T>(props: BridgeLogStreamViewerProps<T>) {
+export function BridgeLogStreamViewer(props: BridgeLogStreamViewerProps) {
     const itemHeight = 20;
-    const [logSummary, setLogSummary] = useState(props.logger.getSummary());
     const [rect, setRect] = useState<DOMRect | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
-    const [selectedIndex, setSelectedIndex] = useState<number>(-1);
     const [isBottom, setIsBottom] = useState<boolean>(true);
 
     let list: JSX.Element | null = null;
-
-    props.logger.onUpdate = () => {
-        setLogSummary(props.logger.getSummary());
-    };
 
     useEffect(() => {
         const resizeObserver = new ResizeObserver((entries) => {
@@ -53,13 +48,14 @@ export function BridgeLogStreamViewer<T>(props: BridgeLogStreamViewerProps<T>) {
     });
 
     function handleSelectedIndexChanged(index: number) {
-        setSelectedIndex(index);
+        if (props.onSelectedIndexChanged) {
+            props.onSelectedIndexChanged(props.selectedIndex === index ? -1 : index);
+        }
     }
 
     function scrollHandler(props: ListOnScrollProps) {
         if (scrollRef && scrollRef.current) {
-            const domRect = scrollRef.current.getBoundingClientRect();
-            if (scrollRef.current.scrollHeight == props.scrollOffset + domRect.height) {
+            if (scrollRef.current.scrollHeight === props.scrollOffset + scrollRef.current.clientHeight) {
                 setIsBottom(true);
             } else {
                 setIsBottom(false);
@@ -68,13 +64,15 @@ export function BridgeLogStreamViewer<T>(props: BridgeLogStreamViewerProps<T>) {
 
     }
 
-    const Row = SelectableRow(selectedIndex, handleSelectedIndexChanged);
+    const Row = SelectableRow(props.selectedIndex, handleSelectedIndexChanged);
+    const logs = props.log.logs;
 
     if (rect) {
         list = (
             <FixedSizeList
                 className="logView-list" outerRef={scrollRef}
-                height={rect.height} width={rect.width} itemSize={itemHeight} itemCount={logSummary.logs.length} itemData={logSummary.logs}
+                height={rect.height} width={rect.width} itemSize={itemHeight} itemCount={logs.length} itemData={logs}
+                itemKey={getItemId}
                 onScroll={scrollHandler}>
                 {Row}
             </FixedSizeList>
@@ -87,22 +85,19 @@ export function BridgeLogStreamViewer<T>(props: BridgeLogStreamViewerProps<T>) {
     );
 }
 
-function SelectableRow(selectedIndex: number, setSelectedIndex: (index: number) => void) {
-    return (props: ListChildComponentProps<BridgeLogInfo<string>[]>) => {
+function SelectableRow(selectedIndex: number | undefined, setSelectedIndex: (index: number) => void) {
+    return (props: ListChildComponentProps<BridgeLogInfo[]>) => {
         const data = props.data[props.index];
 
-        function clickHandler() {
-            if (selectedIndex == props.index) {
-                setSelectedIndex(-1);
-            } else {
-                setSelectedIndex(props.index);
-            }
-        }
-
         return (
-            <div className={`logView-list-item ${selectedIndex == props.index ? "selected" : ""}`} style={props.style} onClick={clickHandler}>
-                {data.request}
+            <div className={`logView-list-item ${selectedIndex == props.index ? "selected" : ""}`} style={props.style} onClick={setSelectedIndex.bind(null, props.index)}>
+                {data.request.action}
             </div>
         );
     }
+}
+
+
+function getItemId(index: number, data: BridgeLogInfo[]) {
+    return data[index].id;
 }
