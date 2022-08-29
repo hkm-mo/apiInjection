@@ -1,6 +1,6 @@
 import React from "react";
-import { BridgeLogInfo } from "../BridgeLogger";
-import { JsonViewer } from "./jsonview/JsonViewer";
+import { BridgeLogInfo } from "../../BridgeLogger";
+import { JsonViewer } from "../jsonview/JsonViewer";
 
 import "./BridgeLogDetailsViewer.less";
 

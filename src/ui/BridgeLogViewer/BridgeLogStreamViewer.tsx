@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { FixedSizeList, ListChildComponentProps, ListOnScrollProps } from "react-window";
-import { BridgeLogger, BridgeLogInfo, BridgeLogSummary } from "../BridgeLogger";
+import { BridgeLogger, BridgeLogInfo, BridgeLogSummary } from "../../BridgeLogger";
 
 import "./BridgeLogStreamViewer.less";
 

@@ -1,9 +1,8 @@
 import React, { useState } from "react";
-import { BridgeLogger } from "../BridgeLogger";
+import { BridgeLogger } from "../../BridgeLogger";
 import { BridgeLogDetailsViewer } from "./BridgeLogDetailsViewer";
 import { BridgeLogStreamViewer } from "./BridgeLogStreamViewer";
-import { JsonViewer } from "./jsonview/JsonViewer";
-import SplitPane from "./SplitPane/SplitPane";
+import SplitPane from "../SplitPane/SplitPane";
 
 interface BridgeLogViewerProps {
     logger: BridgeLogger,
