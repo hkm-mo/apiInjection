@@ -1,70 +1,16 @@
 import React, { useEffect, useRef, useState } from "react";
 import { FixedSizeList, ListChildComponentProps, ListOnScrollProps } from "react-window";
+import { BridgeLogger, BridgeLogInfo } from "../BridgeLogger";
 
-import "./LogViewer.less";
+import "./BridgeLogStreamViewer.less";
 
-interface LogInfo<T> {
-    id: string,
-    type: "info" | "error",
-    content: T,
+
+interface BridgeLogStreamViewerProps<T> {
+    logger: BridgeLogger<string>,
+    onSelectedIndexChanged?: (index: number) => void
 }
 
-class LogSummary<T> {
-    private _logs: LogInfo<T>[];
-    private _updateTime: number;
-
-    get logs() {
-        return this._logs;
-    }
-
-    get updateTime() {
-        return this._updateTime;
-    }
-    
-    constructor(logs: LogInfo<T>[]) {
-        this._logs = logs;
-        this._updateTime = new Date().getTime();
-    }
-}
-
-export class Logger<T> {
-    private summary: LogSummary<T> = new LogSummary([]);
-    private maxSize: number = 0;
-
-    public onUpdate: (() => void) | null = null;
-
-    constructor(maxSize?: number) {
-        this.maxSize = maxSize ?? 0;
-    }
-
-    public getSummary() {
-        return this.summary;
-    }
-
-    public log(data: LogInfo<T>) {
-        const logs = this.summary.logs;
-
-        if (this.maxSize && this.maxSize < this.log.length) {
-            logs.shift();
-        }
-
-        logs.push(data);
-        this.summary = new LogSummary(logs);
-
-        if (this.onUpdate) {
-            setTimeout(this.onUpdate, 0);
-        }
-    }
-
-    public clearLog() {
-        this.summary = new LogSummary([]);
-    }
-}
-
-interface LogViewProps<T> {
-    logger: Logger<string>,
-}
-export function LogViewer<T>(props: LogViewProps<T>) {
+export function BridgeLogStreamViewer<T>(props: BridgeLogStreamViewerProps<T>) {
     const itemHeight = 20;
     const [logSummary, setLogSummary] = useState(props.logger.getSummary());
     const [rect, setRect] = useState<DOMRect | null>(null);
@@ -106,6 +52,10 @@ export function LogViewer<T>(props: LogViewProps<T>) {
         }
     });
 
+    function handleSelectedIndexChanged(index: number) {
+        setSelectedIndex(index);
+    }
+
     function scrollHandler(props: ListOnScrollProps) {
         if (scrollRef && scrollRef.current) {
             const domRect = scrollRef.current.getBoundingClientRect();
@@ -118,7 +68,7 @@ export function LogViewer<T>(props: LogViewProps<T>) {
 
     }
 
-    const Row = SelectableRow(selectedIndex, setSelectedIndex);
+    const Row = SelectableRow(selectedIndex, handleSelectedIndexChanged);
 
     if (rect) {
         list = (
@@ -137,8 +87,8 @@ export function LogViewer<T>(props: LogViewProps<T>) {
     );
 }
 
-function SelectableRow(selectedIndex: number, setSelectedIndex: React.Dispatch<React.SetStateAction<number>>) {
-    return (props: ListChildComponentProps<LogInfo<string>[]>) => {
+function SelectableRow(selectedIndex: number, setSelectedIndex: (index: number) => void) {
+    return (props: ListChildComponentProps<BridgeLogInfo<string>[]>) => {
         const data = props.data[props.index];
 
         function clickHandler() {
@@ -151,7 +101,7 @@ function SelectableRow(selectedIndex: number, setSelectedIndex: React.Dispatch<R
 
         return (
             <div className={`logView-list-item ${selectedIndex == props.index ? "selected" : ""}`} style={props.style} onClick={clickHandler}>
-                {data.content}
+                {data.request}
             </div>
         );
     }

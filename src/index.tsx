@@ -2,10 +2,10 @@
 import React, { useState } from "react";
 import ReactDOM from "react-dom/client";
 import { JsonViewer } from "./ui/jsonview/JsonViewer";
-import { Logger, LogViewer } from "./ui/LogViewer";
-import Pane from "./ui/SplitPane/Pane";
+import { BridgeLogStreamViewer } from "./ui/BridgeLogStreamViewer";
 import SplitPane from "./ui/SplitPane/SplitPane";
 import { getLocalId } from "./ui/uiUtilities";
+import { BridgeLogger, BridgeLogInfo } from "./BridgeLogger";
 
 
 const testData = {
@@ -37,15 +37,24 @@ function LogItem(props: { content: string }) {
 function App() {
     const [data, setData] = useState<any>(testData);
 
-    const logger = new Logger<any>();
-    for (let i = 0; i < 100000; i++) {
-        const id = getLocalId().toString();
-        logger.log({ id: id, content: "Test " + id, type: "info" });
-    }
+    const logger = new BridgeLogger<any>();
+    // for (let i = 0; i < 100000; i++) {
+    //     const id = getLocalId().toString();
+    //     logger.log({ id: id, request: "Test " + id, type: "info" });
+    // }
 
     function keepUpdatingLog() {
         const id = getLocalId().toString();
-        logger.log({ id: id, content: "Test " + id, type: "info" });
+        const data: BridgeLogInfo<any> = { id: id, request: "Test " + id, type: "info" }
+        logger.log(data);
+        setTimeout(() => {
+            data.response = {
+                isSuccess: true,
+                data: {
+                    test: 1
+                }
+            };
+        }, 5000);
         setTimeout(keepUpdatingLog, 500 + Math.round(Math.random() * 1000))
     }
 
@@ -60,7 +69,7 @@ function App() {
     return (
         <SplitPane split="vertical" minSize={200} maxSize={400} defaultSize={200}>
             <div id="logView" style={{ height: "100%", width: "100%" }}>
-                <LogViewer logger={logger}></LogViewer>
+                <BridgeLogStreamViewer logger={logger}></BridgeLogStreamViewer>
             </div>
             <div>
                 <JsonViewer data={data} />
