@@ -1,12 +1,9 @@
 
 import React, { useState } from "react";
 import ReactDOM from "react-dom/client";
-import { JsonViewer } from "./ui/jsonview/JsonViewer";
-import { BridgeLogStreamViewer } from "./ui/BridgeLogStreamViewer";
-import SplitPane from "./ui/SplitPane/SplitPane";
 import { getLocalId } from "./ui/uiUtilities";
 import { BridgeLogger, BridgeLogInfo } from "./BridgeLogger";
-import { BridgeLogViewer } from "./ui/BridgeLogViewer";
+import { BridgeLogViewer } from "./ui/BridgeLogViewer/BridgeLogViewer";
 
 
 const testData = {
@@ -57,7 +54,8 @@ function App() {
             data.response = {
                 clientId: id,
                 payload: {
-                    test: 112 + Math.random()
+                    test: 112 + Math.random(),
+                    ...testData
                 }
             };
         }, 1000);
