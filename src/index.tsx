@@ -46,7 +46,7 @@ function App() {
         const data: BridgeLogInfo = { id: id, request: {
             action: "rpc",
             clientId: id,
-            payload: {}
+            payload: "test"
         }, type: null };
 
         logger.log(data);
@@ -54,6 +54,7 @@ function App() {
             data.response = {
                 clientId: id,
                 payload: {
+                    aabc: {},
                     test: 112 + Math.random(),
                     ...testData
                 }
@@ -63,7 +64,7 @@ function App() {
         setTimeout(keepUpdatingLog, 500 + Math.round(Math.random() * 1000))
     }
 
-    setTimeout(keepUpdatingLog, 5000);
+    setTimeout(keepUpdatingLog, 500);
 
     function addNode() {
         setData({

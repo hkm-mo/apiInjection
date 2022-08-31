@@ -17,7 +17,7 @@ export function BridgeLogDetailsViewer(props: BridgeLogDetailsViewerProps) {
                 <details open>
                     <summary>Request</summary>
                     <div>
-                        <JsonViewer data={props.data.request.payload} />
+                        <JsonViewer key={props.data.id} data={props.data.request.payload} />
                     </div>
                 </details>
                 <details open>
@@ -25,7 +25,7 @@ export function BridgeLogDetailsViewer(props: BridgeLogDetailsViewerProps) {
                     <div>
                         {
                             props.data.response?.payload ?
-                                <JsonViewer data={props.data.response?.payload} /> :
+                                <JsonViewer key={props.data.id} data={props.data.response?.payload} defaultExpanded /> :
                                 <p>Waiting for response</p>
                         }
                     </div>
