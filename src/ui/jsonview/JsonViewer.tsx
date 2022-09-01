@@ -1,24 +1,10 @@
 import React, { useState } from "react";
 import "./JsonViewer.less";
 
-interface JsonViewState {
-    [key: string]: boolean
-}
-
 interface JsonViewerProps {
     data: any,
     defaultExpanded?: boolean
 }
-export const JsonViewer = React.memo(function JsonViewer(props: JsonViewerProps) {
-    return (
-        <div className="jsonViewer">
-            <JsonViewerNodes parentName="" value={props.data} level={0} defaultExpanded={props.defaultExpanded ?? false} />
-        </div>
-    );
-});
-
-
-
 
 interface JsonViewerNodeProps {
     parentName: string,
@@ -27,14 +13,44 @@ interface JsonViewerNodeProps {
     defaultExpanded: boolean
 }
 
+interface JsonViewerNodeViewProps {
+    viewId: string,
+    level: number,
+    name: string | number,
+    value: string | number | null | undefined,
+    defaultExpanded: boolean
+}
+
+interface JsonValueProps {
+    value: any
+}
+
+
+export const JsonViewer = React.memo(function JsonViewer(props: JsonViewerProps) {
+    return (
+        <div className="jsonViewer">
+            <JsonViewerNodes parentName="" value={{ root: props.data }} level={0} defaultExpanded={props.defaultExpanded ?? false} />
+        </div>
+    );
+});
+
+
 function JsonViewerNodes(props: JsonViewerNodeProps) {
     const nodes: JSX.Element[] = [];
     if (props.value && typeof props.value === "object") {
         for (const key in props.value) {
-            const viewId = `node-${props.parentName}/${key}`
-            console.log(viewId);
+            const viewId = `node-${props.parentName}/${key}`;
             nodes.push(
                 <JsonViewerNodeView key={viewId} viewId={viewId} name={key} value={props.value[key]} level={props.level} defaultExpanded={props.defaultExpanded} />
+            );
+        }
+        if (!nodes.length) {
+            nodes.push(
+                <tr key={`node-${props.parentName}/`}>
+                    <td colSpan={2}>
+                        <span className={`jsonViewerNode-noChild ${Array.isArray(props.value) ? "array" : "object"}`}></span>
+                    </td>
+                </tr>
             );
         }
     } else {
@@ -53,35 +69,30 @@ function JsonViewerNodes(props: JsonViewerNodeProps) {
     );
 }
 
-interface JsonViewerNodeView {
-    viewId: string,
-    level: number,
-    name: string | number,
-    value: string | number | null | undefined,
-    defaultExpanded: boolean
-}
 
-function JsonViewerNodeView(props: JsonViewerNodeView) {
+function JsonViewerNodeView(props: JsonViewerNodeViewProps) {
     const [isOpened, setIsOpened] = useState(props.defaultExpanded);
 
     let arrowClass = "";
     let hasChildNode = false;
     let nextLevelContent: JSX.Element | null = null;
+    let nodeContent: JSX.Element;
 
     if (props.value && typeof props.value === "object") {
         arrowClass = "arrow" + (isOpened ? " opend" : "");
         hasChildNode = true;
+
+        if (isOpened && hasChildNode) {
+            nextLevelContent = (
+                <tr>
+                    <td colSpan={2} className="jsonViewerNode-child">
+                        <JsonViewerNodes parentName={props.viewId} value={props.value} level={props.level + 1} defaultExpanded={props.defaultExpanded} />
+                    </td>
+                </tr>
+            );
+        }
     }
 
-    if (isOpened && hasChildNode) {
-        nextLevelContent = (
-            <tr>
-                <td colSpan={2} className="jsonViewerNode-child">
-                    <JsonViewerNodes parentName={props.viewId} value={props.value} level={props.level + 1} defaultExpanded={props.defaultExpanded} />
-                </td>
-            </tr>
-        );
-    }
 
     function toggleNode() {
         if (hasChildNode) {
@@ -89,10 +100,10 @@ function JsonViewerNodeView(props: JsonViewerNodeView) {
         }
     }
 
-    return (
-        <>
-            <tr key={`${props.viewId}-node`} className={`jsonViewerNode jsonView-node-${props.level} ${isOpened ? "jsonViewerNode-opened" : ""}`}>
-                <td className="jsonViewerNode-label" onClick={toggleNode}>
+    if (props.level) {
+        nodeContent = (
+            <>
+                <td className="jsonViewerNode-label">
                     <span className={"jsonViewerNode-icon " + arrowClass}></span>
                     <span className="jsonViewerNode-labelText">
                         {props.name}
@@ -101,30 +112,41 @@ function JsonViewerNodeView(props: JsonViewerNodeView) {
                 <td>
                     <JsonValue value={props.value} />
                 </td>
+            </>
+        );
+    } else {
+        nodeContent = (<td className="jsonViewerNode-label" colSpan={2}>
+            {hasChildNode ? <span className={"jsonViewerNode-icon " + arrowClass}></span> : null }
+            <JsonValue value={props.value} />
+        </td>);
+    }
+
+    return (
+        <>
+            <tr key={`${props.viewId}-node`} className={`jsonViewerNode jsonView-node-${props.level} ${isOpened ? "jsonViewerNode-opened" : ""}`} onClick={toggleNode}>
+                {nodeContent}
             </tr>
             {nextLevelContent}
         </>
     );
 }
 
-interface JsonValueProps {
-    value: any
-}
+
 function JsonValue(props: JsonValueProps) {
-    let valueClass = "valueBox-" + typeof props.value;
+    const objType = typeof props.value;
+    let valueClass = "valueBox-" + objType;
     let displayValue: string;
 
     if (props.value === null) {
         valueClass = "valueBox-null";
         displayValue = "null";
-    } else if (props.value === undefined) {
-        valueClass = "valueBox-undefined";
-        displayValue = "undefined";
     } else if (Array.isArray(props.value)) {
         valueClass = "valueBox-array";
         displayValue = props.value.length.toString();
-    } else if (typeof props.value === "object") {
+    } else if (objType === "object") {
         displayValue = Object.keys(props.value).length.toString();
+    } else if (objType === "string") {
+        displayValue = JSON.stringify(props.value).slice(1, -1);
     } else {
         displayValue = String(props.value);
     }

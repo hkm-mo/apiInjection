@@ -72,6 +72,20 @@
         }
     }
 
+    .jsonViewerNode-noChild {
+        color: #737373;
+        font-style: italic;
+        user-select: none;
+        padding-inline-start: 20px;
+
+        &.array::after {
+            content: "No elements";
+        }
+        &.object::after {
+            content: "No properties";
+        }
+    }
+
     .jsonViewerNode-valueBox {
         padding-inline-start: 0.5em;
 
