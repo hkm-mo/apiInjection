@@ -3,22 +3,24 @@ import "./JsonViewer.less";
 
 interface JsonViewerProps {
     data: any,
-    defaultExpanded?: boolean
+    defaultExpanded?: boolean | number,
+    hideRoot?: boolean
 }
 
 interface JsonViewerNodeProps {
     parentName: string,
     value: any,
     level: number,
-    defaultExpanded: boolean
+    defaultExpanded: number,
+    showRoot?: boolean
 }
 
 interface JsonViewerNodeViewProps {
     viewId: string,
     level: number,
-    name: string | number,
+    name?: string | number,
     value: string | number | null | undefined,
-    defaultExpanded: boolean
+    defaultExpanded: number
 }
 
 interface JsonValueProps {
@@ -27,9 +29,16 @@ interface JsonValueProps {
 
 
 export const JsonViewer = React.memo(function JsonViewer(props: JsonViewerProps) {
+    let defaultExpanded = typeof props.defaultExpanded === "number" ? props.defaultExpanded : 
+        (props.defaultExpanded ? 64 : 0);
     return (
         <div className="jsonViewer">
-            <JsonViewerNodes parentName="" value={{ root: props.data }} level={0} defaultExpanded={props.defaultExpanded ?? false} />
+            <JsonViewerNodes
+                parentName=""
+                value={props.data}
+                level={0}
+                defaultExpanded={defaultExpanded}
+                showRoot={!props.hideRoot} />
         </div>
     );
 });
@@ -37,11 +46,25 @@ export const JsonViewer = React.memo(function JsonViewer(props: JsonViewerProps)
 
 function JsonViewerNodes(props: JsonViewerNodeProps) {
     const nodes: JSX.Element[] = [];
-    if (props.value && typeof props.value === "object") {
+    if (props.showRoot) {
+        const viewId = `node-${props.parentName}`;
+        nodes.push(<JsonViewerNodeView 
+            key={viewId} 
+            viewId={viewId} 
+            value={props.value} 
+            level={props.level} 
+            defaultExpanded={props.defaultExpanded} />);
+    } else if (props.value && typeof props.value === "object") {
         for (const key in props.value) {
             const viewId = `node-${props.parentName}/${key}`;
             nodes.push(
-                <JsonViewerNodeView key={viewId} viewId={viewId} name={key} value={props.value[key]} level={props.level} defaultExpanded={props.defaultExpanded} />
+                <JsonViewerNodeView 
+                    key={viewId} 
+                    viewId={viewId} 
+                    name={key} 
+                    value={props.value[key]} 
+                    level={props.level} 
+                    defaultExpanded={props.defaultExpanded} />
             );
         }
         if (!nodes.length) {
@@ -60,6 +83,7 @@ function JsonViewerNodes(props: JsonViewerNodeProps) {
             </td>
         </tr>);
     }
+
     return (
         <table cellPadding={0} cellSpacing={0}>
             <tbody>
@@ -71,7 +95,7 @@ function JsonViewerNodes(props: JsonViewerNodeProps) {
 
 
 function JsonViewerNodeView(props: JsonViewerNodeViewProps) {
-    const [isOpened, setIsOpened] = useState(props.defaultExpanded);
+    const [isOpened, setIsOpened] = useState(props.level < props.defaultExpanded);
 
     let arrowClass = "";
     let hasChildNode = false;
@@ -86,7 +110,11 @@ function JsonViewerNodeView(props: JsonViewerNodeViewProps) {
             nextLevelContent = (
                 <tr>
                     <td colSpan={2} className="jsonViewerNode-child">
-                        <JsonViewerNodes parentName={props.viewId} value={props.value} level={props.level + 1} defaultExpanded={props.defaultExpanded} />
+                        <JsonViewerNodes 
+                            parentName={props.viewId} 
+                            value={props.value} 
+                            level={props.level + 1} 
+                            defaultExpanded={props.defaultExpanded} />
                     </td>
                 </tr>
             );
@@ -100,7 +128,7 @@ function JsonViewerNodeView(props: JsonViewerNodeViewProps) {
         }
     }
 
-    if (props.level) {
+    if (props.name !== undefined) {
         nodeContent = (
             <>
                 <td className="jsonViewerNode-label">
@@ -116,7 +144,7 @@ function JsonViewerNodeView(props: JsonViewerNodeViewProps) {
         );
     } else {
         nodeContent = (<td className="jsonViewerNode-label" colSpan={2}>
-            {hasChildNode ? <span className={"jsonViewerNode-icon " + arrowClass}></span> : null }
+            {hasChildNode ? <span className={"jsonViewerNode-icon " + arrowClass}></span> : null}
             <JsonValue value={props.value} />
         </td>);
     }
