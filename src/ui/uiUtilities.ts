@@ -11,9 +11,12 @@ export function useTopLayerPortal() {
     const [root,] = useState(() => {
         const elm = document.createElement('div');
         elm.className = "portalRoot";
-        elm.style.setProperty('--portal-z-index', String(portalZIndex++));
         return elm;
     });
+
+    if (root) {
+        root.style.setProperty('--portal-z-index', String(portalZIndex++));
+    }
 
     useLayoutEffect(() => {
         document.body.appendChild(root);
