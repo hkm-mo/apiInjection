@@ -26,7 +26,7 @@ export function Modal(props: PropsWithChildren<ModelProps>) {
     }
 
     const hasTransition = !(typeof props.transition === "boolean" && !props.transition);
-    const containerClasses = 
+    const containerClasses = null;
 
     const content = (
         <div className={"modal-container " + props.containerClasses?.join(" ") || ""} style={!hasTransition && !props.show ? undefined : {display: "block"}} ref={containerRef}>

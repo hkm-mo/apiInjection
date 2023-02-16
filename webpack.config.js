@@ -1,4 +1,5 @@
 const path = require("path");
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = {
@@ -14,6 +15,11 @@ module.exports = {
         new MiniCssExtractPlugin({
             filename: '[name].css',
             chunkFilename: '[name].css'
+        }),
+        new HtmlWebpackPlugin({
+            template: './src/index.html',
+            filename: 'index.html',
+            chunks: ['index'], 
         }),
     ],
     module: {
@@ -65,5 +71,12 @@ module.exports = {
     output: {
         filename: "[name].js",
         path: path.resolve(__dirname, "dist"),
+    },
+    devServer: {
+        static: {
+            directory: path.join(__dirname, 'public'),
+        },
+        compress: true,
+        port: 3000,
     },
 };
