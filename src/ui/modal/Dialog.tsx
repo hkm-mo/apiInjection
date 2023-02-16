@@ -47,7 +47,7 @@ export function Dialog(props: PropsWithChildren<DialogProps>) {
         }
     }
     return (
-        <Modal show={props.show} bodyClasses={["dialog-container"]} onbackgroundClicked={props.onbackgroundClicked}>
+        <Modal show={Boolean(props.show)} bodyClasses={["dialog-container"]} onbackgroundClicked={props.onbackgroundClicked}>
             {props.title ? <h1>{props.title}</h1> : null}
             <div key="dialog-body" className="dialog-body">{props.children}</div>
             <div key="dialog-actions" className="dialog-actions">{btns}</div>

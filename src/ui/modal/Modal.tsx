@@ -26,17 +26,17 @@ export function Modal(props: PropsWithChildren<ModelProps>) {
     }
 
     const hasTransition = !(typeof props.transition === "boolean" && !props.transition);
-    const containerClasses = null;
+    const containerClasses = ["modal-container", ...(props.containerClasses ?? [])];
 
     const content = (
-        <div className={"modal-container " + props.containerClasses?.join(" ") || ""} style={!hasTransition && !props.show ? undefined : {display: "block"}} ref={containerRef}>
+        <div className={containerClasses.join(" ")} style={props.show ? { display: "block" } : undefined} ref={containerRef}>
             <div className="modal-mask" onClick={maskClickHandler} onContextMenu={maskClickHandler} />
             <div className={"modal-body " + props.bodyClasses?.join(" ") || ""} style={props.bodyStyle} ref={props.bodyRef}>{props.children}</div>
         </div>
     );
 
     return ReactDOM.createPortal(
-        hasTransition ? 
+        hasTransition ?
             (
                 <CSSTransition nodeRef={containerRef} in={props.show} timeout={300} classNames="modal-transition">
                     {content}
