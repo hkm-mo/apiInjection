@@ -54,9 +54,10 @@ export class ExtensionMessenger<P = any, T extends ExtensionEnvelope<P> = Extens
     sendMessage(message: T) {
         for (const port of this._ports) {
             if (message.distId && message.distId === port.sender?.tab?.id) {
-                
+                port.postMessage(message);
+            } else {
+                port.postMessage(message);
             }
-            port.postMessage(message);
         }
     }
 

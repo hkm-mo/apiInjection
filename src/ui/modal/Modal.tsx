@@ -8,24 +8,39 @@ import "./Modal.less";
 export interface ModelProps {
     show?: boolean,
     bodyClasses?: string[],
+    containerRef?: React.RefObject<HTMLDivElement>,
+    bodyRef?: React.RefObject<HTMLDivElement>,
+    containerClasses?: string[],
+    bodyStyle?: React.CSSProperties,
+    transition?: boolean,
     onbackgroundClicked?: (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => void
 }
 
 export function Modal(props: PropsWithChildren<ModelProps>) {
     const root = useTopLayerPortal();
-    const nodeRef = useRef<HTMLDivElement>(null);
+    const containerRef = props.containerRef ?? useRef<HTMLDivElement>(null);
 
     function maskClickHandler(event: React.MouseEvent<HTMLDivElement, MouseEvent>) {
-        if (props.onbackgroundClicked) 
+        if (props.onbackgroundClicked)
             props.onbackgroundClicked(event);
     }
 
-    return ReactDOM.createPortal((
-        <CSSTransition nodeRef={nodeRef} in={props.show} timeout={300} classNames="modal-transition">
-            <div className="modal-container" ref={nodeRef}>
-                <div className="modal-mask" onClick={maskClickHandler} />
-                <div className={"modal-body " + props.bodyClasses?.join(" ")}>{props.children}</div>
-            </div>
-        </CSSTransition>
-    ), root);
+    const hasTransition = !(typeof props.transition === "boolean" && !props.transition);
+    const containerClasses = 
+
+    const content = (
+        <div className={"modal-container " + props.containerClasses?.join(" ") || ""} style={!hasTransition && !props.show ? undefined : {display: "block"}} ref={containerRef}>
+            <div className="modal-mask" onClick={maskClickHandler} onContextMenu={maskClickHandler} />
+            <div className={"modal-body " + props.bodyClasses?.join(" ") || ""} style={props.bodyStyle} ref={props.bodyRef}>{props.children}</div>
+        </div>
+    );
+
+    return ReactDOM.createPortal(
+        hasTransition ? 
+            (
+                <CSSTransition nodeRef={containerRef} in={props.show} timeout={300} classNames="modal-transition">
+                    {content}
+                </CSSTransition>
+            ) : content,
+        root);
 }

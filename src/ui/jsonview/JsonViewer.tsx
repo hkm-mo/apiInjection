@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { ContextMenu, ContextMenuItem, createContextMenu } from "../modal/ContextMenu";
 import "./JsonViewer.less";
 
 interface JsonViewerProps {
@@ -7,12 +8,17 @@ interface JsonViewerProps {
     hideRoot?: boolean
 }
 
+interface JsonViewerSharedProps {
+    defaultExpanded: number,
+    showRoot: boolean,
+    contextMenu: ContextMenu
+}
+
 interface JsonViewerNodeProps {
     parentName: string,
     value: any,
     level: number,
-    defaultExpanded: number,
-    showRoot?: boolean
+    sharedProps: JsonViewerSharedProps,
 }
 
 interface JsonViewerNodeViewProps {
@@ -20,7 +26,7 @@ interface JsonViewerNodeViewProps {
     level: number,
     name?: string | number,
     value: string | number | null | undefined,
-    defaultExpanded: number
+    sharedProps: JsonViewerSharedProps,
 }
 
 interface JsonValueProps {
@@ -29,16 +35,31 @@ interface JsonValueProps {
 
 
 export const JsonViewer = React.memo(function JsonViewer(props: JsonViewerProps) {
-    let defaultExpanded = typeof props.defaultExpanded === "number" ? props.defaultExpanded : 
+    let defaultExpanded = typeof props.defaultExpanded === "number" ? props.defaultExpanded :
         (props.defaultExpanded ? 64 : 0);
+    const [ctxMenu] = useState(createContextMenu());
+
+    ctxMenu.useRootContextMenu([
+        {
+            id: "jsonViewer.copy",
+            label: "Copy",
+            onClick: () => { }
+        }
+    ]);
+
     return (
         <div className="jsonViewer">
-            <JsonViewerNodes
-                parentName=""
-                value={props.data}
-                level={0}
-                defaultExpanded={defaultExpanded}
-                showRoot={!props.hideRoot} />
+            <ctxMenu.ContextMenu>
+                <JsonViewerNodes
+                    parentName=""
+                    value={props.data}
+                    level={0}
+                    sharedProps={{
+                        defaultExpanded: defaultExpanded,
+                        showRoot: !props.hideRoot,
+                        contextMenu: ctxMenu
+                    }} />
+            </ctxMenu.ContextMenu>
         </div>
     );
 });
@@ -46,25 +67,31 @@ export const JsonViewer = React.memo(function JsonViewer(props: JsonViewerProps)
 
 function JsonViewerNodes(props: JsonViewerNodeProps) {
     const nodes: JSX.Element[] = [];
-    if (props.showRoot) {
+    if (props.sharedProps.showRoot) {
         const viewId = `node-${props.parentName}`;
-        nodes.push(<JsonViewerNodeView 
-            key={viewId} 
-            viewId={viewId} 
-            value={props.value} 
-            level={props.level} 
-            defaultExpanded={props.defaultExpanded} />);
+        nodes.push(<JsonViewerNodeView
+            key={viewId}
+            viewId={viewId}
+            value={props.value}
+            level={props.level}
+            sharedProps={{
+                ...props.sharedProps,
+                showRoot: false
+            }} />);
     } else if (props.value && typeof props.value === "object") {
         for (const key in props.value) {
             const viewId = `node-${props.parentName}/${key}`;
             nodes.push(
-                <JsonViewerNodeView 
-                    key={viewId} 
-                    viewId={viewId} 
-                    name={key} 
-                    value={props.value[key]} 
-                    level={props.level} 
-                    defaultExpanded={props.defaultExpanded} />
+                <JsonViewerNodeView
+                    key={viewId}
+                    viewId={viewId}
+                    name={key}
+                    value={props.value[key]}
+                    level={props.level}
+                    sharedProps={{
+                        ...props.sharedProps,
+                        showRoot: false
+                    }} />
             );
         }
         if (!nodes.length) {
@@ -95,7 +122,32 @@ function JsonViewerNodes(props: JsonViewerNodeProps) {
 
 
 function JsonViewerNodeView(props: JsonViewerNodeViewProps) {
-    const [isOpened, setIsOpened] = useState(props.level < props.defaultExpanded);
+    const [isOpened, setIsOpened] = useState(props.level < props.sharedProps.defaultExpanded);
+    const node = props.sharedProps.contextMenu.useContextMenu<HTMLTableRowElement>(
+        () => {
+            const result: ContextMenuItem[] = [{
+                id: "jsonViewer.copyNodeValue",
+                label: "Copy Node Value",
+                onClick: () => {
+                    if (typeof props.value === "string") {
+                        console.log(JSON.parse(props.value));
+                    }
+                }
+            }];
+            if (typeof props.value === "string") {
+                result.push({
+                    id: "jsonViewer.viewAsJson",
+                    label: "View String Value as JSON",
+                    onClick: () => {
+                        if (typeof props.value === "string") {
+                            console.log(JSON.parse(props.value));
+                        }
+                    }
+                });
+            }
+            return result;
+        }
+    );
 
     let arrowClass = "";
     let hasChildNode = false;
@@ -110,11 +162,11 @@ function JsonViewerNodeView(props: JsonViewerNodeViewProps) {
             nextLevelContent = (
                 <tr>
                     <td colSpan={2} className="jsonViewerNode-child">
-                        <JsonViewerNodes 
-                            parentName={props.viewId} 
-                            value={props.value} 
-                            level={props.level + 1} 
-                            defaultExpanded={props.defaultExpanded} />
+                        <JsonViewerNodes
+                            parentName={props.viewId}
+                            value={props.value}
+                            level={props.level + 1}
+                            sharedProps={props.sharedProps} />
                     </td>
                 </tr>
             );
@@ -151,7 +203,7 @@ function JsonViewerNodeView(props: JsonViewerNodeViewProps) {
 
     return (
         <>
-            <tr key={`${props.viewId}-node`} className={`jsonViewerNode jsonView-node-${props.level} ${isOpened ? "jsonViewerNode-opened" : ""}`} onClick={toggleNode}>
+            <tr ref={node} key={`${props.viewId}-node`} className={`jsonViewerNode jsonView-node-${props.level} ${isOpened ? "jsonViewerNode-opened" : ""}`} onClick={toggleNode}>
                 {nodeContent}
             </tr>
             {nextLevelContent}

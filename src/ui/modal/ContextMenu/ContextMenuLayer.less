@@ -1,0 +1,39 @@
+.ctxMenu-layer-container {
+    .modal-mask {
+        background-color: rgba(0, 0, 0, 0.01);
+    }
+    &.modal-transition {
+        &-enter,
+        &-exit-active {
+            .modal-body.ctxMenu-sheet {
+                pointer-events: none;
+                transform: translateY(0);
+                box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+            }
+        }
+    
+        &-enter-active {
+            .modal-body.ctxMenu-sheet {
+                box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+            }
+        }
+    }
+}
+
+.ctxMenu-layer {
+    position: fixed;
+    width: 0;
+    height: 0;
+    backdrop-filter: none;
+    border-radius: 6px;
+    user-select: none;
+    padding: 6px 0;
+    right: unset;
+    bottom: unset;
+    top: unset;
+    left: unset;
+    background-color: rgba(255, 255, 255, 0.7);
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+    max-width: unset;
+    max-height: unset;
+}
