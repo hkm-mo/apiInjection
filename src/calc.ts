@@ -1,3 +1,21 @@
+if (!window.process) {
+    (window as any).process = { env: {NODE_ENV: "production"}}
+} else if (!window.process.env) {
+    (window as any).process.env = {NODE_ENV: "production"}
+} else if (!window.process.env.NODE_ENV) {
+    (window as any).process.env.NODE_ENV = "production"
+}
+
+if (process.env.NODE_ENV === "production") {
+    console.log("production")
+} else {
+    console.log("not production")
+}
+if ((process as any)['e' + 'nv']['NODE_ENV'] === "production") {
+    console.log("production")
+} else {
+    console.log("not production")
+}
 
 const containerHeight = 600;
 const elmHeight = 600;
