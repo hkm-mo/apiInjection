@@ -19,12 +19,17 @@ if ((process as any)['e' + 'nv']['NODE_ENV'] === "production") {
 
 const containerHeight = 600;
 const elmHeight = 600;
-const halfWay: number | number[] = [300, 400];
+const halfWay: number | number[] = [300, 320, 600, 700, 800, 900];
+
+interface LandMarks extends Array<number> {
+    highestLandMark: number,
+    lowerestLandMark: number,
+}
 
 function valid() {
     if (Array.isArray(halfWay)) {
         for (let i = 1; i < halfWay.length; i++) {
-            if (typeof halfWay[i - 1] !== "number" || typeof halfWay[i] !== "number" || halfWay[i - 1] > halfWay[i])
+            if (typeof halfWay[i - 1] !== "number" || typeof halfWay[i] !== "number" || (halfWay[i - 1] + 10) > halfWay[i])
                 return false
         }
     }
@@ -32,14 +37,19 @@ function valid() {
 }
 
 function getLandMarks() {
-    const full = Math.min(containerHeight, elmHeight);
+    const topLandMark = Math.min(containerHeight, elmHeight);
     const halfWays = typeof halfWay === "number" ? [halfWay] : halfWay;
-    const landMarks: number[] = [0];
+    const landMarks = [0] as LandMarks;
 
     for (const h of halfWays) {
-        landMarks.push(Math.min(h, full));
+        if (h + 10 < topLandMark)
+            landMarks.push(h);
+        else break;
     }
-    landMarks.push(full);
+    landMarks.push(topLandMark);
+
+    landMarks.lowerestLandMark = 0;
+    landMarks.highestLandMark = topLandMark;
 
     return landMarks;
 }
@@ -52,7 +62,7 @@ function getThresholds(landMarks: number[]) {
     return thresholds;
 }
 
-function stickToLandMark(landMarks: number[], thresholds: number[], dy: number, point: number, speed: number) {
+function stickToLandMark(landMarks: LandMarks, thresholds: number[], dy: number, point: number, speed: number, currentLandMark: number) {
     let selectedLandMark = 0;
     for (let i = 0; i < thresholds.length; i++) {
         if (thresholds[i] < point) {
@@ -68,8 +78,7 @@ function stickToLandMark(landMarks: number[], thresholds: number[], dy: number, 
         }
     }
 
-
-    return Math.max(Math.min(selectedLandMark, landMarks.length - 1), 0);
+    return Math.max(Math.min(selectedLandMark, landMarks.highestLandMark), landMarks.lowerestLandMark);
 }
 
 const landMarks = getLandMarks();
@@ -77,20 +86,20 @@ const thresholds = getThresholds(landMarks);
 console.log("valid", valid())
 console.log("LandMarks", landMarks)
 console.log("Thresholds", thresholds)
-console.log("stickToLandMark", 10, 140, 0.1, stickToLandMark(landMarks, thresholds, 10, 140, 0.1))
-console.log("stickToLandMark", 10, 200, 0.1, stickToLandMark(landMarks, thresholds, 10, 200, 0.1))
-console.log("stickToLandMark", 10, 450, 0.1, stickToLandMark(landMarks, thresholds, 10, 450, 0.1))
-console.log("stickToLandMark", 10, 510, 0.1, stickToLandMark(landMarks, thresholds, 10, 510, 0.1))
+console.log("stickToLandMark", 10, 140, 0.1, stickToLandMark(landMarks, thresholds, 10, 140, 0.1, 1))
+console.log("stickToLandMark", 10, 200, 0.1, stickToLandMark(landMarks, thresholds, 10, 200, 0.1, 1))
+console.log("stickToLandMark", 10, 450, 0.1, stickToLandMark(landMarks, thresholds, 10, 450, 0.1, 1))
+console.log("stickToLandMark", 10, 510, 0.1, stickToLandMark(landMarks, thresholds, 10, 510, 0.1, 1))
 
-console.log("stickToLandMark", -10, 140, 0.1, stickToLandMark(landMarks, thresholds, -10, 140, 0.1))
-console.log("stickToLandMark", -10, 200, 0.1, stickToLandMark(landMarks, thresholds, -10, 200, 0.1))
-console.log("stickToLandMark", -10, 450, 0.1, stickToLandMark(landMarks, thresholds, -10, 450, 0.1))
-console.log("stickToLandMark", -10, 510, 0.1, stickToLandMark(landMarks, thresholds, -10, 510, 0.1))
+console.log("stickToLandMark", -10, 140, 0.1, stickToLandMark(landMarks, thresholds, -10, 140, 0.1, 1))
+console.log("stickToLandMark", -10, 200, 0.1, stickToLandMark(landMarks, thresholds, -10, 200, 0.1, 1))
+console.log("stickToLandMark", -10, 450, 0.1, stickToLandMark(landMarks, thresholds, -10, 450, 0.1, 1))
+console.log("stickToLandMark", -10, 510, 0.1, stickToLandMark(landMarks, thresholds, -10, 510, 0.1, 1))
 
-console.log("stickToLandMark", 60, 140, 2.1, stickToLandMark(landMarks, thresholds, 60, 140, 2.1))
-console.log("stickToLandMark", 60, 200, 2.1, stickToLandMark(landMarks, thresholds, 60, 200, 2.1))
-console.log("stickToLandMark", 60, 450, 2.1, stickToLandMark(landMarks, thresholds, 60, 450, 2.1))
+console.log("stickToLandMark", 60, 140, 2.1, stickToLandMark(landMarks, thresholds, 60, 140, 2.1, 1))
+console.log("stickToLandMark", 60, 200, 2.1, stickToLandMark(landMarks, thresholds, 60, 200, 2.1, 1))
+console.log("stickToLandMark", 60, 450, 2.1, stickToLandMark(landMarks, thresholds, 60, 450, 2.1, 1))
 
 
-console.log("stickToLandMark", -60, 140, 2.1, stickToLandMark(landMarks, thresholds, -60, 140, 2.1))
-console.log("stickToLandMark", -60, 200, 2.1, stickToLandMark(landMarks, thresholds, -60, 200, 2.1))
+console.log("stickToLandMark", -60, 140, 2.1, stickToLandMark(landMarks, thresholds, -60, 140, 2.1, 1))
+console.log("stickToLandMark", -60, 200, 2.1, stickToLandMark(landMarks, thresholds, -60, 200, 2.1, 1))
